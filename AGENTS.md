@@ -28,4 +28,19 @@
 - Contato/folga são globais; duplicação e degeneração são verificações
   intrínsecas na escala própria do elemento. Não relaxe tolerâncias para aprovar
   testes sem reproduzir e justificar o defeito.
+- A v0.2.0 introduz `aeroopt.solvers`, uma infraestrutura de execução sem solver
+  físico. Consulte `docs/SOLVER_INTERFACE.md` e `docs/VALIDATION_V020.md` antes
+  de alterar contratos, identidade, estados ou controle de processos.
+- Mantenha coeficientes ausentes como `None`/`null`. Adaptadores simulados não
+  podem publicar `cl`, `cd` ou `cm`. Saída zero não estabelece convergência.
+- Use o runner e `AttemptContext.run_process` para processos externos: argumentos
+  sem shell, logs isolados, timeout e encerramento dos descendentes. Preserve
+  dados/manifestos e não altere geometrias para satisfazer um adaptador.
+- Preserve a separação entre ID científico determinístico e UUID da tentativa.
+  Não inclua horários, caminhos de execução ou PIDs no hash da análise.
+- O runner exige `min_clearance` explícito. Referência de momento e parâmetros
+  de transição/turbulência não recebem valores físicos implícitos.
+- Mudanças futuras devem manter os testes geométricos e os novos testes de
+  contratos, falhas, caminhos e processos. Não confunda infraestrutura validada
+  com aerodinâmica validada.
 

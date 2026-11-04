@@ -128,3 +128,36 @@ para iniciar um adaptador de solver sob contratos e referências revisados;
 não há validação de painelamento, convergência ou classificação aerodinâmica.
 CFD, MSES, RANS, XFOIL e otimização permanecem pendentes.
 
+## Incremento v0.2.0 — interface e infraestrutura de execução
+
+`aeroopt.solvers` separa condições operacionais, contrato abstrato, snapshot de
+entrada, execução, interpretação e persistência. Não contém solver físico.
+O adaptador simulado é explicitamente não físico e mantém todos os coeficientes
+ausentes. Versão instalada: 0.2.0, sem novas dependências de runtime.
+
+O ID SHA-256 usa coordenadas globais, condições, identidade/configurações do
+adaptador, esquema e folga explícita. Tentativas têm UUID e arquivos próprios;
+pastas/timestamps não entram na identidade científica. Float64 é codificado
+exatamente no hash, sem arredondamento de coordenadas. Objetos e snapshots são
+imutáveis. O resultado preserva proveniência, condições, estados separados de
+execução/convergência, logs relativos e hashes dos artefatos.
+
+Reynolds é baseado na corda principal. Alpha é expresso em graus e define
+`V_inf/|V_inf|=(cos(alpha),sin(alpha))` no quadro global; o runner não gira a
+geometria. Adaptadores devem converter convenções explicitamente. `cm` presente
+exige posição, sentido e normalização declarados, sem referência implícita.
+
+O runner valida geometria/folga antes de preparar o adaptador, recusa alterações
+nos dados globais e captura falhas por etapa. Processos externos usam argumentos
+sem shell, saída em arquivos e contenção por Job Object no Windows com um worker
+bloqueado até a associação. Timeout e saída normal encerram descendentes comuns.
+Chamadas Python em processo são cooperativas, sem preempção arbitrária. A API
+de caminhos contém os artefatos, mas não constitui um sandbox para código hostil.
+
+Essa infraestrutura permite iniciar um adaptador físico posteriormente, com
+faixas suportadas, modelos de transição, critérios de convergência e convenções
+validados de forma independente. Não se implementou MSES, XFOIL, RANS,
+otimização ou modelos substitutos. Validade geométrica e sucesso do processo
+não demonstram fidelidade física. Detalhes e evidências estão em
+`SOLVER_INTERFACE.md` e `VALIDATION_V020.md`.
+

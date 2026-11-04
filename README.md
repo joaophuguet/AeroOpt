@@ -1,9 +1,48 @@
-# AeroOpt — Geometry Engine v0.1.1
+# AeroOpt v0.2.0 — Geometria e infraestrutura de solvers
 
 Base geométrica 2D para a futura otimização aerodinâmica multifidelidade de
 aerofólios multielementos. A v0.1 importa um elemento principal e um flap
 independentes, normaliza, posiciona, valida, exporta e desenha os contornos.
 **Não calcula aerodinâmica, CFD, desempenho de voo ou otimização.**
+
+## Interface de solver v0.2.0
+
+O pacote `aeroopt.solvers` introduz condições operacionais imutáveis, contrato
+abstrato de adaptadores, identidade científica SHA-256, tentativas isoladas,
+resultados tipados, logs e tratamento de falhas. O único adaptador entregue é
+`MockSolver`, explicitamente não físico, com `cl`, `cd` e `cm` sempre ausentes.
+
+```powershell
+.\.venv\Scripts\python.exe examples/demo_solver_interface.py --output outputs/solver_interface_reproducao
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m pytest -q --reference-data=outputs/reference_data_v011
+```
+
+A demonstração cobre sete estados, uma repetição da mesma análise e uma rejeição
+geométrica: nove tentativas, sem sobrescrita. Os resultados verificados estão
+em `outputs/solver_interface_v020_final/`, com JSON, DAT separados e logs.
+Nenhum gráfico de coeficientes é produzido. O timeout do mock usa um subprocesso
+real bloqueado, encerrado pelo controle de árvore de processos do Windows.
+
+```python
+from pathlib import Path
+from aeroopt.solvers import MockSolver, OperatingConditions, SolverRunner
+
+runner = SolverRunner(Path.cwd(), "outputs/my_attempts")
+conditions = OperatingConditions(alpha_deg=6.0, reynolds=200000.0, mach=0.05)
+result = runner.run(MockSolver(), geometry, conditions,
+                    min_clearance=0.002, timeout_s=0.5)
+```
+
+Nesse trecho, `geometry` é uma montagem válida criada pela API geométrica abaixo.
+Reynolds usa a corda principal; alpha está em graus, com direção de velocidade
+`(cos(alpha),sin(alpha))` no quadro global. Falha de processo, parsing e
+convergência são estados separados. O hash não depende da pasta/horário; cada
+tentativa possui UUID próprio. Não há paralelismo de análises nesta versão.
+
+Consulte [SOLVER_INTERFACE.md](docs/SOLVER_INTERFACE.md) para contratos, esquema,
+convenções, limites de timeout e implementação de adaptadores reais; veja
+[VALIDATION_V020.md](docs/VALIDATION_V020.md) para os testes e a preparação Git.
 
 ## Validação geométrica v0.1.1
 
