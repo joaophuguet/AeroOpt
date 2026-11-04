@@ -37,6 +37,10 @@ class ValidationReport:
     def to_dict(self) -> dict:
         """Return a JSON-compatible report, with no NaN placeholders."""
         return {"valid": self.valid, **asdict(self), "units": "main_chord",
+                "element_tolerance_frame": "own_bbox_diagonal",
+                "area_tolerance_units": "own_bbox_diagonal_squared",
+                "duplicate_tolerance_units": "own_bbox_diagonal",
+                "contact_clearance_tolerance_units": "main_chord",
                 "aerodynamic_gap": None, "aerodynamic_overlap": None,
                 "gap_overlap_status": "pending_definition"}
 
@@ -50,8 +54,13 @@ def _polygon(points: ArrayLike, name: str,
     if not np.isfinite(array).all():
         issues.append(ValidationIssue("non_finite", "Non-finite coordinates", name))
         return None
+    span = float(np.hypot(*np.ptp(array, axis=0)))
+    if not np.isfinite(span) or span <= 0:
+        issues.append(ValidationIssue("degenerate_contour", "Zero or unrepresentable contour span", name))
+        return None
+    relative = (array - array[0]) / span
     # Exact final closure is allowed, but short edges/repeated internal vertices are not.
-    unique = array[:-1] if np.array_equal(array[0], array[-1]) else array
+    unique = relative[:-1] if np.array_equal(array[0], array[-1]) else relative
     for i in range(len(unique) - 1):
         if np.any(np.linalg.norm(unique[i + 1:] - unique[i], axis=1) <= LENGTH_TOL):
             issues.append(ValidationIssue("duplicate_points", "Repeated/near-repeated contour vertices", name))
@@ -60,11 +69,14 @@ def _polygon(points: ArrayLike, name: str,
         issues.append(ValidationIssue("degenerate_contour", "Fewer than three distinct vertices", name))
         return None
     polygon = Polygon(array)  # GEOS closes a finite-thickness TE with one straight segment.
-    ring = LinearRing(array)
+    # Shape quality is intrinsic: scaling an otherwise resolved flap by r must
+    # not multiply its degeneracy threshold by 1/r². Contact stays global.
+    local_polygon = Polygon(relative)
+    ring = LinearRing(relative)
     if not ring.is_simple:
-        issues.append(ValidationIssue("self_intersection", explain_validity(polygon), name))
-    if polygon.area <= AREA_TOL:
-        issues.append(ValidationIssue("degenerate_contour", "Closed area <= area tolerance", name))
+        issues.append(ValidationIssue("self_intersection", explain_validity(local_polygon), name))
+    if local_polygon.area <= AREA_TOL:
+        issues.append(ValidationIssue("degenerate_contour", "Area / own span² <= area tolerance", name))
     if not polygon.is_valid and ring.is_simple:
         issues.append(ValidationIssue("invalid_contour", explain_validity(polygon), name))
     return polygon

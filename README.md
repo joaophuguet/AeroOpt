@@ -1,9 +1,67 @@
-# AeroOpt — Geometry Engine v0.1
+# AeroOpt — Geometry Engine v0.1.1
 
 Base geométrica 2D para a futura otimização aerodinâmica multifidelidade de
 aerofólios multielementos. A v0.1 importa um elemento principal e um flap
 independentes, normaliza, posiciona, valida, exporta e desenha os contornos.
 **Não calcula aerodinâmica, CFD, desempenho de voo ou otimização.**
+
+## Validação geométrica v0.1.1
+
+A v0.1.1 acrescenta geração analítica NACA de quatro dígitos e validação com
+NACA 0012, NACA 4412 e S1223 publicados na UIUC. Os originais publicados ficam
+em `outputs/`, preservados byte a byte com SHA-256; sua redistribuição não foi
+autorizada explicitamente pelas páginas consultadas, portanto não são incluídos
+nos arquivos versionáveis. `examples/reference_catalog.json` registra URLs,
+hashes revisados, contagens e referências explícitas. Esses arquivos são
+coordenadas publicadas, não apresentados como medições experimentais.
+
+Execução offline, usando apenas geometrias **geradas analiticamente**:
+
+```powershell
+.\.venv\Scripts\python.exe examples/validate_real_airfoils.py --output outputs/validation_offline
+```
+
+Para baixar os três originais fixados por hash e incluí-los no estudo:
+
+```powershell
+.\.venv\Scripts\python.exe examples/validate_real_airfoils.py --fetch-uiuc --output outputs/validation_com_uiuc
+```
+
+Para reproduzir a execução já realizada, reutilizando os originais locais:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q --reference-data=outputs/reference_data_v011
+.\.venv\Scripts\python.exe examples/validate_real_airfoils.py --reference-dir outputs/reference_data_v011 --output outputs/validation_reproducao
+```
+
+Sempre escolha um `--output` novo/vazio; arquivos anteriores não são sobrescritos.
+Se a fonte mudar de hash, a execução exige revisão explícita, preservando o
+download recebido. Sem `--reference-data`, somente os 21 casos com arquivos UIUC
+são ignorados no pytest; toda a validação analítica permanece offline. Temporários
+do pytest ficam automaticamente em uma pasta nova de `.tmp/` quando `--basetemp`
+não é fornecido. Nenhuma dependência adicional foi necessária nesta versão.
+
+O exemplo gera perfis normalizados, comparação LE automática/explícita, 32 linhas
+de sensibilidade, 45 transformações de normalização quando os três publicados
+estão presentes, configurações válidas/rejeitadas, exportações verificadas,
+proveniência e tabelas CSV/JSON. A execução final está em `outputs/validation_v011_final/`;
+a metodologia e os resultados estão em [VALIDATION_V011.md](docs/VALIDATION_V011.md).
+
+```python
+from aeroopt.geometry import Airfoil, naca4_points
+
+points = naca4_points("4412", n_points=161, closed_te=False, spacing="cosine")
+foil = Airfoil.from_points(points, leading_edge_index=80)
+```
+
+O índice explícito preserva a origem nominal NACA. No perfil cambado, esse ponto
+pode diferir do mínimo x e do ponto mais distante da fuga. O modo automático
+anterior foi preservado; consulte os erros quantificados no relatório.
+
+As correções de tolerância verificam duplicações e área degenerada na escala
+própria de cada elemento. `LENGTH_TOL=1e-10` continua sendo a tolerância global
+de contato/folga. O relatório JSON agora informa explicitamente os referenciais
+das tolerâncias, mantendo os campos anteriores e o esquema DAT/JSON v0.1.
 
 ## Ambiente e instalação
 

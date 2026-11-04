@@ -15,4 +15,17 @@
 - Mantenha arquivos gerados, caches e temporários dentro do workspace.
 - A v0.1 é exclusivamente geométrica. CFD, solvers aerodinâmicos, NSGA-II e
   modelos substitutos pertencem a versões futuras.
+- A v0.1.1 é uma etapa de validação geométrica. Consulte também
+  `docs/VALIDATION_V011.md` antes de alterar referências ou tolerâncias.
+- Preserve os downloads originais com SHA-256 e proveniência. Não versione
+  coordenadas externas sem condições de redistribuição estabelecidas; os
+  originais UIUC locais e seus derivados permanecem em `outputs/`.
+- Para incluir os testes publicados: `.\.venv\Scripts\python.exe -m pytest -q --reference-data=outputs/reference_data_v011`.
+  Sem os dados, as verificações analíticas permanecem executáveis offline;
+  nunca invente medições externas.
+- Não confunda origem nominal NACA, mínimo x e referência por maior distância
+  à fuga. Use índices explícitos quando houver referência conhecida.
+- Contato/folga são globais; duplicação e degeneração são verificações
+  intrínsecas na escala própria do elemento. Não relaxe tolerâncias para aprovar
+  testes sem reproduzir e justificar o defeito.
 

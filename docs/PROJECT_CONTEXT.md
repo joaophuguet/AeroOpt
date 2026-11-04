@@ -80,8 +80,9 @@ permitem separar a API suportada do ambiente efetivamente exercitado.
 
 ## Próximas etapas e decisões pendentes
 
-1. Revisar, com perfis reais representativos, a identificação amostrada de LE/TE,
-   a qualidade dos pontos e as tolerâncias para escalas menores.
+1. Ampliar a validação com perfis reais e condições de integração: a v0.1.1
+   verificou NACA 0012, NACA 4412 e S1223, mas não garante identificação automática
+   correta da referência nominal nem qualidade suficiente para qualquer solver.
 2. Definir gap/overlap aerodinâmicos por referências, eixos e regiões de busca
    explícitos; validar contra convenções do solver e interpretação experimental.
 3. Adicionar catálogos/proveniência com hashes de entrada, esquemas de metadados
@@ -97,4 +98,33 @@ Também estão pendentes política para perfis com LE não amostrada, referênci
 TE fora das extremidades do arquivo, incerteza de discretização e tratamento de
 arquivos incompatíveis via conversores explícitos. A posição nominal usada no
 exemplo não é uma recomendação aerodinâmica.
+
+## Incremento v0.1.1 — validação geométrica
+
+Foram exercitados três arquivos UIUC preservados e identificados por SHA-256,
+além de NACA 0012/4412 gerados analiticamente. A permissão de redistribuição das
+coordenadas não foi estabelecida: originais e derivados ficam em `outputs/`,
+ignorados pelo Git. Apenas o catálogo de fontes/hashes faz parte do código.
+O exemplo `examples/validate_real_airfoils.py` funciona offline com referências
+analíticas ou, explicitamente, com downloads/arquivos locais fixados por hash.
+
+Uma implementação escalar independente das equações fornece referências contínuas
+por integração e pelo mínimo da curva de nariz em um caso de tampa de fuga.
+O estudo distingue erro poligonal, referência de normalização e erro de
+implementação. Duas falhas da v0.1 foram reproduzidas: área absoluta rejeitava
+flaps pequenos resolvidos, e proximidade absoluta de pontos fazia uma subdivisão
+legítima de segmento alterar a validade. Na v0.1.1, qualidade intrínseca do
+elemento usa sua própria escala, enquanto contato/folga mantêm a corda principal.
+As constantes numéricas não foram relaxadas.
+
+A referência automática por ponto mais distante permanece compatível, mas não
+coincide com a origem nominal do NACA 4412 em discretizações mais finas. Casos
+com referência conhecida usam índice explícito. Acordo entre duas discretizações
+não é certificado de exatidão: há um platô mensurável de erro de distância entre
+161 e 321 pontos no estudo. Resultados completos estão em `VALIDATION_V011.md`.
+
+Este incremento continua exclusivamente geométrico. Há evidência suficiente
+para iniciar um adaptador de solver sob contratos e referências revisados;
+não há validação de painelamento, convergência ou classificação aerodinâmica.
+CFD, MSES, RANS, XFOIL e otimização permanecem pendentes.
 

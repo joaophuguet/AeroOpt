@@ -1,0 +1,30 @@
+[
+  {
+    "name": "NACA 0012", "file": "n0012.dat", "point_count": 131,
+    "url": "https://m-selig.ae.illinois.edu/ads/coord_seligFmt/n0012.dat",
+    "sha256": "ac83dca5d32bc4e4db2131820e87981bb71903cfeebee8cefd0818dedbe2b012",
+    "reference_leading_edge_index": 65,
+    "reference_kind": "published row at nominal (0,0)",
+    "license_status": "No explicit coordinate redistribution license established; do not bundle bytes",
+    "reviewed_on": "2026-11-04"
+  },
+  {
+    "name": "NACA 4412", "file": "naca4412.dat", "point_count": 35,
+    "url": "https://m-selig.ae.illinois.edu/ads/coord_seligFmt/naca4412.dat",
+    "sha256": "5c86886f667266f29a5f3a0a48505b9b25ea10539d8a112486c62bf3a5bbd6ad",
+    "reference_leading_edge_index": 17,
+    "reference_kind": "published row at nominal (0,0)",
+    "license_status": "No explicit coordinate redistribution license established; do not bundle bytes",
+    "reviewed_on": "2026-11-04"
+  },
+  {
+    "name": "S1223", "file": "s1223.dat", "point_count": 81,
+    "url": "https://m-selig.ae.illinois.edu/ads/coord_seligFmt/s1223.dat",
+    "sha256": "f2e06d165d6244d2fc1c7dde9e46c46c4d42a70b183620ea02fd693fbfa5cf53",
+    "reference_leading_edge_index": 45,
+    "reference_kind": "explicit sampled nose (.00005,.00178); exact continuous LE unknown",
+    "application_source": "https://m-selig.ae.illinois.edu/pubs/GuglielmoSelig-1997-JofAC-S1223.pdf",
+    "license_status": "No explicit coordinate redistribution license established; do not bundle bytes",
+    "reviewed_on": "2026-11-04"
+  }
+]

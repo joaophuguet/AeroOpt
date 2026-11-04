@@ -1,4 +1,4 @@
-# Convenções geométricas — v0.1
+# Convenções geométricas — v0.1.1
 
 ## Referenciais e unidades
 
@@ -134,11 +134,32 @@ deve exceder `AREA_TOL=1e-12`. Isso evita que uma simples mudança de escala
 original determine a aceitação. A exceção para duplicação final exige igualdade
 exata, sem substituir silenciosamente um ponto quase coincidente.
 
-Na montagem global, as tolerâncias são absolutas em cordas principais:
-`LENGTH_TOL=1e-10 c_main` e `AREA_TOL=1e-12 c_main²`. Elas são políticas numéricas,
-não incertezas físicas. Flaps extremamente pequenos podem atingir esses limites
-e ser rejeitados. Contornos repetidos, área muito pequena e auto-interseção são
-diagnosticados antes de operar sobre pares de sólidos inválidos.
+Na v0.1.1 a montagem distingue duas escalas. Qualidade intrínseca de cada
+contorno usa `D = diagonal da própria caixa delimitadora`: duplicações são
+verificadas em `(p-p_first)/D`, com `LENGTH_TOL=1e-10`, e a área nesse referencial
+deve exceder `AREA_TOL=1e-12`. Ou seja, os limites equivalem a `1e-10 D` e
+`1e-12 D²`. A área de validação é calculada nesse referencial local para não
+subtrair números globais grandes desnecessariamente. Polígonos usados nas
+operações entre elementos continuam com os pontos globais originais.
+
+Contato e folga usam **sempre** `LENGTH_TOL=1e-10 c_main`. As constantes não
+mudaram; corrigiu-se sua aplicação à qualidade intrínseca do elemento. Na v0.1,
+uma escala r multiplicava a área por r² mas deixava fixa a área mínima global,
+gerando rejeição artificial; pontos legítimos também eram classificados como
+duplicados quando o elemento era reduzido. Um contorno resolvido deve manter
+seu diagnóstico intrínseco sob escala uniforme, pois `A/D²` e `distância/D` são
+invariantes nessa operação. Há testes reproduzindo ambos os defeitos
+antes/depois da correção. A diagonal da caixa é uma escala numérica conveniente,
+não um diâmetro invariante a rotação; casos intrínsecos exatamente próximos
+dos limiares exigem revisão, especialmente em contornos muito pouco resolvidos.
+
+Essas políticas não são incertezas físicas. Coordenadas globais que perdem
+resolução em float64 ainda podem colapsar pontos e ser rejeitadas corretamente:
+nenhum reescalonamento recupera informação já perdida. O teste com razão de
+corda `1e-7` é uma sondagem numérica, não uma recomendação de projeto. Contornos
+repetidos, área relativa muito pequena e autointerseção são diagnosticados
+antes de operar sobre pares de sólidos inválidos. `ValidationReport` mantém
+os campos existentes, acrescentando unidades explícitas para cada tolerância.
 
 A distância mínima global é `distance(boundary(main), boundary(flap))`, incluindo
 as tampas de fuga. É não negativa e está definida apenas quando os dois
@@ -196,3 +217,51 @@ nem igualdade bit a bit entre diferentes versões de GEOS, NumPy ou plataformas.
 
 As convenções de LE/TE e a política de folga acima são decisões do AeroOpt,
 não definições aerodinâmicas atribuídas a essas bibliotecas.
+
+## Geração NACA analítica e referências da v0.1.1
+
+O gerador cria novas geometrias e nunca rediscretiza perfis importados.
+Uma designação de quatro dígitos define `m=d1/100`, `p=d2/10` e
+`t=(10*d3+d4)/100`. Para a família simétrica, exige-se prefixo `00`.
+Na corda nominal unitária:
+
+```text
+h(x) = 5t [0.2969 sqrt(x) - 0.1260 x - 0.3516 x² + 0.2843 x³ - 0.1015 x⁴]
+yc(x) = m/p² [2px-x²]                         se x <= p
+yc(x) = m/(1-p)² [1-2p+2px-x²]                 se x > p
+g(x) = dyc/dx; theta = atan(g)
+P_upper = (x-h sin(theta), yc+h cos(theta))
+P_lower = (x+h sin(theta), yc-h cos(theta))
+```
+
+Para `m=0`, `yc=g=0`. A espessura é aplicada normal à linha média, não
+verticalmente. A formulação clássica tem espessura de fuga finita `2h(1)`;
+para NACA 0012, `2h(1)=0.00252`. `closed_te=True` seleciona explicitamente o
+coeficiente modificado `-0.1036`, obtido impondo `h(1)=0`. Essa modificação
+é identificada nos resultados e não apresentada como a mesma geometria
+clássica. O zero matemático da fuga modificada é representado exatamente.
+
+Para N total ímpar, usam-se `(N+1)/2` estações de linha média de 0 a 1,
+uniformes ou `x=(1-cos(beta))/2`, com beta uniforme em `[0,pi]`. A superfície
+superior é percorrida ao contrário, seguida da inferior sem repetir a origem.
+A referência nominal NACA `(0,0)` fica no índice `(N-1)/2`. As duas pontas de
+fuga são mantidas; na fuga fechada são iguais. Não há transformação de
+normalização oculta no gerador. O usuário escolhe explicitamente o índice
+nominal ao construir `Airfoil`.
+
+A origem nominal, o ponto de mínimo x da curva espessada e o ponto mais distante
+de T são referências distintas em perfis cambados. No NACA 4412 com N=161
+cossenoidal, o modo automático escolhe índice 79, e o nominal é 80. A diferença
+é `0.00349061497 c`; a corda de referência automática difere em
+`0.000300138689 c`. O mínimo x contínuo desse perfil está aproximadamente em
+`(-0.000300247899, 0.003037524456)`. Nenhum deles substitui silenciosamente o
+contrato nominal. Para S1223 publicado, usa-se explicitamente a amostra de
+índice 45 em `(0.00005,0.00178)`: não é conhecida a LE exata da curva contínua.
+
+As fontes das equações são as páginas PDAS de
+[espessura](https://www.pdas.com/naca456thick4.html) e
+[linha média](https://www.pdas.com/naca456mean2.html). A implementação é própria;
+não se copiou um programa ou uma coleção de coordenadas externa para o pacote.
+As verificações independentes incluem um cálculo Decimal, ordenadas publicadas,
+integral exata de área simétrica e a referência escalar contínua descrita no
+relatório `VALIDATION_V011.md`.

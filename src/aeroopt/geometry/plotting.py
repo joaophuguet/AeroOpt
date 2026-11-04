@@ -9,6 +9,8 @@ import numpy as np
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
+from aeroopt import __version__
+
 if TYPE_CHECKING:
     from .multielement import MultiElementAirfoil
 
@@ -63,7 +65,7 @@ def compare_configurations(configurations: Sequence["MultiElementAirfoil"], *,
         ax.set_title(f"{label} — {status}\n{ax.get_title()}", fontsize=10)
     for ax in list(axes.flat)[len(configurations):]:
         ax.set_visible(False)
-    fig.suptitle("AeroOpt v0.1 — comparação geométrica (sem análise aerodinâmica)", fontsize=13)
+    fig.suptitle(f"AeroOpt v{__version__} — comparação geométrica (sem análise aerodinâmica)", fontsize=13)
     return fig
 
 
