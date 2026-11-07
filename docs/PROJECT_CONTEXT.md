@@ -195,3 +195,31 @@ Permanecem necessários estudos de resolução de folgas, referências de maior
 precisão para fugas finitas e validação experimental antes de usar o solver
 para decisões de projeto ou classificação de candidatos.
 
+## Incremento v0.3.1 — revisão científica e numérica
+
+A revisão preserva o Hess–Smith e os contratos da v0.2/v0.3. Deriva as
+convenções de influência, circulação, forças e momento e confirma a referência
+Joukowski por uma fórmula fechada de Blasius, independente da quadratura de
+pressão. O erro de momento da cúspide não foi identificado como erro de sinal
+ou normalização; sua decomposição e as incertezas restantes estão em
+`VALIDATION_V031.md`. Não houve correção empírica de CL/CM ou de Kutta.
+
+Uma formulação de referência com vorticidade linear por painel, sem fontes e
+sem usar o kernel de produção, verifica casos NACA de dois elementos. É código
+de pesquisa em `examples/`, não um novo adaptador. Ela também rejeita condições
+numéricas ruins e não é uma referência confiável de Cp na cúspide muito fina.
+Nenhuma dessas comparações constitui validação experimental viscosa.
+
+Foi reproduzido e corrigido cancelamento de logaritmos nas influências do campo
+distante. A montagem agora projeta blocos diretamente nas matrizes escalares,
+com menos memória; mantém a SVD completa, `cond_2<=1e10` e resíduos `<=1e-9`.
+Versão e estratégia entram na identidade científica. Os testes de falha e
+serialização continuam obrigatórios. Dados fornecidos não são rediscretizados.
+
+A tampa de fuga finita mostrou sensibilidade mesmo com condicionamento baixo.
+O modelo foi mantido com flag `finite_te_closure_unverified` e diagnóstico
+obrigatório no resultado, sem pretender precisão certificada para classificação
+de projetos. O uso aceitável permanece em estudos invíscidos controlados, com
+refinamento e referências próprias; otimização aerodinâmica automática não está
+qualificada. Consulte `VALIDATION_V031.md` antes de alterar essas restrições.
+

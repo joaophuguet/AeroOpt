@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aeroopt"
-version = "0.3.0"
+version = "0.3.1"
 description = "Reproducible multielement airfoil geometry and an auditable inviscid panel solver"
 readme = "README.md"
 requires-python = ">=3.13"

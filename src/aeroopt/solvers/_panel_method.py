@@ -19,6 +19,7 @@ MAX_TE_RATIO = .05
 MAX_PANELS = 2000
 CONDITION_LIMIT = 1e10
 RESIDUAL_LIMIT = 1e-9
+ASSEMBLY_BLOCK_SIZE = 64
 
 
 @dataclass(frozen=True)
@@ -91,6 +92,16 @@ def source_velocity(targets: Array, starts: Array, ends: Array) -> Array:
     avoiding quadrant ambiguity. Endpoints and exact on-sheet targets are
     undefined here; collocation self terms are explicitly inserted elsewhere.
     """
+    return _source_velocity_block(targets,starts,ends)
+
+
+def _source_velocity_block(targets, starts, ends, *, self_rows=None, self_normals=None):
+    """Bounded-memory analytical block, optionally inserting known self limits.
+
+    self_rows identifies one true midpoint per source panel. Its on-sheet
+    angular expression is discarded and replaced by n/2; no displaced target
+    or geometric epsilon is used. The ordinary off-sheet API never enables it.
+    """
     delta = np.asarray(ends) - np.asarray(starts)
     length = np.linalg.norm(delta, axis=1)
     if np.any(length <= 0) or not np.isfinite(length).all():
@@ -102,14 +113,25 @@ def source_velocity(targets: Array, starts: Array, ends: Array) -> Array:
     y = np.einsum("ijk,jk->ij", rel, left)
     r1, r2 = np.hypot(x, y), np.hypot(x - length, y)
     on_sheet = (y == 0) & (x >= 0) & (x <= length)
+    if self_rows is not None:
+        on_sheet[self_rows,np.arange(len(length))] = False
     if np.any(on_sheet) or np.any(r1 == 0) or np.any(r2 == 0):
         raise ValueError("source influence is undefined on a panel or its endpoints")
-    u = (np.log(r1) - np.log(r2)) / (2 * np.pi)
     # Scale before the angle products to avoid overflow/underflow.
     scale = np.maximum(np.maximum(np.abs(x), np.abs(y)), length)
     xs, ys, ls = x / scale, y / scale, length / scale
+    u = (np.log(r1) - np.log(r2)) / (2 * np.pi)
+    # log(r1)-log(r2) loses relative accuracy in the far field. The identity
+    # log(r1/r2)=atanh((r1^2-r2^2)/(r1^2+r2^2)) avoids subtraction of logs.
+    # Near endpoints, retain the logs: an atanh argument rounded to +/-1 would
+    # spuriously diverge even for a regular off-sheet target.
+    ratio = ls * (2*xs-ls) / (xs*xs + (xs-ls)**2 + 2*ys*ys)
+    balanced = np.abs(ratio) < .5
+    u[balanced] = np.arctanh(ratio[balanced]) / (2*np.pi)
     v = np.arctan2(ys * ls, xs * (xs - ls) + ys * ys) / (2 * np.pi)
     velocity = u[..., None] * t + v[..., None] * left
+    if self_rows is not None:
+        velocity[self_rows,np.arange(len(length))] = .5*self_normals
     if not np.isfinite(velocity).all():
         raise ValueError("nonfinite analytical panel influence")
     return velocity
@@ -152,23 +174,35 @@ def assemble(meshes: tuple[PanelMesh, ...], alpha_deg: float) -> PanelSystem:
     """N source strengths plus one constant vortex-sheet strength per body."""
     if not meshes or sum(m.size for m in meshes) > MAX_PANELS:
         raise ValueError("unsupported panel count (limit 2000)")
-    source, vortex = influences(meshes)
     normal = np.vstack([m.normals for m in meshes])
     tangent = np.vstack([m.tangents for m in meshes])
     count, elements = len(normal), len(meshes)
-    velocity = np.empty((count, count + elements, 2))
-    velocity[:, :count] = source
+    starts = np.vstack([m.starts for m in meshes])
+    ends = np.vstack([m.ends for m in meshes])
+    centers = np.vstack([m.centers for m in meshes])
+    # Project bounded analytical blocks directly. Avoid three dense vector
+    # tensors (source, vortex and combined velocity). Normal coefficients share
+    # the top rows of A; all equations and the full SVD gate remain unchanged.
+    matrix = np.zeros((count+elements, count+elements))
+    vn = matrix[:count]
+    vt = np.zeros((count,count+elements))
     pairs = []
     offset = 0
     for e, mesh in enumerate(meshes):
-        velocity[:, count + e] = np.sum(vortex[:, offset:offset + mesh.size], axis=1)
+        for begin in range(offset,offset+mesh.size,ASSEMBLY_BLOCK_SIZE):
+            end = min(begin+ASSEMBLY_BLOCK_SIZE,offset+mesh.size)
+            source = _source_velocity_block(centers,starts[begin:end],ends[begin:end],
+                                            self_rows=np.arange(begin,end),self_normals=normal[begin:end])
+            vn[:,begin:end] = np.einsum("ijk,ik->ij", source,normal)
+            vt[:,begin:end] = np.einsum("ijk,ik->ij", source,tangent)
+            vn[:,count+e] += np.sum(-source[:,:,1]*normal[:,None,0] + source[:,:,0]*normal[:,None,1],axis=1)
+            vt[:,count+e] += np.sum(-source[:,:,1]*tangent[:,None,0] + source[:,:,0]*tangent[:,None,1],axis=1)
         pairs.append((offset, offset + mesh.surface_count - 1))
         offset += mesh.size
-    vn = np.einsum("ijk,ik->ij", velocity, normal)
-    vt = np.einsum("ijk,ik->ij", velocity, tangent)
     angle = np.deg2rad(alpha_deg)
     free = np.array([np.cos(angle), np.sin(angle)])  # V_inf = 1
-    matrix = np.vstack([vn, *[vt[a] + vt[b] for a, b in pairs]])
+    for e, (a,b) in enumerate(pairs):
+        matrix[count+e] = vt[a]+vt[b]
     rhs = np.concatenate((-normal @ free, [-((tangent[a] + tangent[b]) @ free) for a, b in pairs]))
     if not np.isfinite(matrix).all() or not np.isfinite(rhs).all():
         raise ValueError("nonfinite coupled panel system")

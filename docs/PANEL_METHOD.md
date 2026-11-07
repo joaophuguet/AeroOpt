@@ -1,4 +1,4 @@
-# Método de painéis — AeroOpt v0.3.0
+# Método de painéis — AeroOpt v0.3.1
 
 ## Modelo e contrato
 
@@ -63,6 +63,14 @@ As demais influências são integrais analíticas. Avaliar exatamente sobre outr
 painel ou em sua extremidade é indefinido e gera rejeição. Fora do segmento,
 um ponto colinear regular tem influência tangencial finita.
 
+Desde a revisão v0.3.1, quando `|eta|<0.5`, o termo radial é calculado por
+`atanh(eta)/(2*pi)`, com `eta=(r1²-r2²)/(r1²+r2²)`. O numerador é formado como
+`L*(2*x-L)` nas coordenadas escaladas, sem subtrair raios quase iguais.
+A identidade é exatamente a mesma integral; evita cancelamento de logaritmos
+no campo distante. Para `|eta|>=0.5`, preservam-se os logaritmos para evitar
+que eta arredondado a ±1 produza divergência falsa perto das extremidades.
+Não se alteram pontos, sinais ou termos próprios.
+
 Essas fórmulas podem ser obtidas integrando o campo de uma fonte pontual e
 rotacionando-o para o vórtice. A formulação clássica está descrita em
 [Mason, capítulo 4, seção 4.4](https://archive.aoe.vt.edu/mason/Mason_f/CAtxtChap4.pdf).
@@ -102,6 +110,14 @@ Esse tratamento não foi validado experimentalmente, e seu refinamento pode
 ser não monotônico. Uma cúspide de ângulo nulo também apresenta convergência
 lenta, comprovada pelo caso exato de Joukowski. Kutta satisfeita em dois pontos
 não certifica precisão da distribuição inteira nem do momento.
+
+Na v0.3.1, qualquer elemento com tampa produz a flag legível por máquina
+`limitations=["finite_te_closure_unverified"]` em `panel_output.json` e o
+diagnóstico `FINITE_TE_UNVERIFIED` no resultado neutro. O parser exige a flag
+correta para a geometria. A execução pode ter sucesso discreto, mas esses
+coeficientes não devem ser usados para classificar projetos com fuga finita.
+A revisão comparou subdivisões explícitas da mesma tampa e Kutta extrapolada;
+nenhuma alternativa foi adotada automaticamente. Veja `VALIDATION_V031.md`.
 
 ## Pressão, forças, momento e circulação
 
@@ -180,6 +196,15 @@ deve usar futuramente um worker por `AttemptContext.run_process`; o runner e
 seu contrato de processos não foram alterados. Custo de armazenamento é O(N²),
 de solução/SVD O(N³). Não há cache de resultado nem estado mutável no adaptador.
 
+A montagem v0.3.1 projeta blocos de 64 painéis diretamente em coeficientes
+normais/tangenciais. Não materializa os três tensores vetoriais N×N×2 da
+estratégia anterior. As linhas normais são uma vista das primeiras linhas de A;
+o custo dominante de armazenamento das duas matrizes é aproximadamente
+`16*N²` bytes, além de blocos/temporários e workspace da álgebra linear.
+A SVD completa de `cond_2` continua obrigatória em toda solução; limiares e
+tratamento de falhas permanecem iguais. Versão do adaptador, estratégia de
+montagem e tamanho do bloco fazem parte da identidade científica.
+
 `panel_request.json` registra os segmentos exatos e sua relação com o snapshot;
 `panel.log` registra o modelo. `panel_output.json` (esquema
 `aeroopt.panel-output.v1`) inclui `case_id`, referência CM, aceitação/motivo,
@@ -201,6 +226,7 @@ limites acima mudam o hash quando mudam a análise.
 ```powershell
 .\.venv\Scripts\python.exe examples/demo_panel_solver.py --output outputs/panel_demo_reproducao
 .\.venv\Scripts\python.exe examples/verify_panel_solver.py --output outputs/panel_verification_reproducao
+.\.venv\Scripts\python.exe examples/review_panel_solver.py --output outputs/panel_review_reproducao
 .\.venv\Scripts\python.exe -m pytest -q
 .\.venv\Scripts\python.exe -m pytest -q --reference-data=outputs/reference_data_v011
 ```

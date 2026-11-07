@@ -41,13 +41,17 @@ class PanelSolver(AerodynamicSolver):
 
     @property
     def identity(self) -> SolverIdentity:
-        return SolverIdentity("aeroopt.hess_smith", "0.3.0", False, True,
+        return SolverIdentity("aeroopt.hess_smith", "0.3.1", False, True,
             ("steady", "2d", "incompressible", "inviscid", "main_flap_interaction",
              "surface_cp", "cl", "cm", "element_circulation", "boundary_residuals"),
             FrozenJSON({"numpy_version": np.__version__, "formulation": "constant_sources_constant_vortex_per_element",
                         "moment_reference": self.moment_reference.to_dict(), "freestream_speed": 1.0,
                         "force_normalization": "q_inf*c_main", "circulation_positive": "counterclockwise",
                         "te_treatment": "straight_cap_and_opposed_terminal_tangential_velocities",
+                        "finite_te_policy": "explicit_unverified_closure_flag",
+                        "assembly": "blocked_scalar_projection",
+                        "assembly_block_size": method.ASSEMBLY_BLOCK_SIZE,
+                        "radial_influence": "balanced_atanh_else_log",
                         "acceptance_scope": "linear_algebra_and_collocation_only",
                         "condition_limit_2": method.CONDITION_LIMIT, "residual_limit": method.RESIDUAL_LIMIT,
                         "minimum_clearance_c_main": method.MIN_CLEARANCE,
@@ -103,6 +107,8 @@ class PanelSolver(AerodynamicSolver):
         check_deadline()
         ref = self.moment_reference
         output = method.solve(system, ref.x_over_c, ref.y_over_c, ref.positive_sense)
+        output["limitations"] = (["finite_te_closure_unverified"]
+                                  if any(m.size > m.surface_count for m in meshes) else [])
         distance = Polygon(case.main_points).boundary.distance(Polygon(case.flap_points).boundary)
         output["diagnostics"]["clearance_c_main"] = float(distance)
         output["diagnostics"]["clearance_over_largest_panel"] = float(distance / max(np.max(m.lengths) for m in meshes))
@@ -130,6 +136,10 @@ class PanelSolver(AerodynamicSolver):
             if not 0 <= real_number(diagnostics[key], key) <= method.RESIDUAL_LIMIT:
                 raise ValueError(f"panel {key} failed acceptance")
         meshes = self._meshes(case.main_points, case.flap_points, case.geometry)
+        finite_te = any(m.size > m.surface_count for m in meshes)
+        expected_limitations = ["finite_te_closure_unverified"] if finite_te else []
+        if output["limitations"] != expected_limitations:
+            raise ValueError("panel output omitted or changed its trailing-edge limitation flag")
         if len(output["elements"]) != 2 or diagnostics["unknown_count"] != sum(m.size for m in meshes) + 2:
             raise ValueError("panel output element/system size mismatch")
         force = np.zeros(2)
@@ -167,6 +177,9 @@ class PanelSolver(AerodynamicSolver):
         cm = moment_ccw if ref.positive_sense == "counterclockwise" else -moment_ccw
         if not np.allclose([coefficients.cl, coefficients.cm], [cl, cm], rtol=1e-12, atol=1e-12):
             raise ValueError("panel forces/moment disagree with surface pressure")
-        return ParsedOutput(ConvergenceStatus.CONVERGED, coefficients,
-            ("Inviscid solution: Re is metadata; cd unavailable; no separation or stall prediction.",
-             "Cp, CCW circulation and numerical residuals: panel_output.json. Refine panels before interpretation."))
+        messages = ("Inviscid solution: Re is metadata; cd unavailable; no separation or stall prediction.",
+                    "Cp, CCW circulation and numerical residuals: panel_output.json. Refine panels before interpretation.")
+        if finite_te:
+            messages += ("FINITE_TE_UNVERIFIED: cap/terminal-panel Kutta closure lacks a reliable accuracy "
+                         "certificate; do not rank finite-TE designs from these coefficients.",)
+        return ParsedOutput(ConvergenceStatus.CONVERGED, coefficients, messages)

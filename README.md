@@ -1,4 +1,4 @@
-# AeroOpt v0.3.0 — Solver de painéis multielemento
+# AeroOpt v0.3.1 — Revisão numérica do solver de painéis
 
 Base geométrica 2D para a futura otimização aerodinâmica multifidelidade de
 aerofólios multielementos. A v0.1 importa um elemento principal e um flap
@@ -43,6 +43,19 @@ O primeiro exemplo usa os polígonos sintéticos existentes, sem refinamento, e
 apenas demonstra execução. O segundo gera referências analíticas e um estudo
 de refinamento explícito. Consulte [método, decisões e limites](docs/PANEL_METHOD.md)
 e [resultados quantitativos da verificação](docs/VALIDATION_V030.md).
+
+A revisão [v0.3.1](docs/VALIDATION_V031.md) acrescenta uma formulação independente
+com vórtices lineares, auditoria do momento de Joukowski, sensibilidade da fuga
+finita e benchmarks de custo/memória. Corrige cancelamento numérico no campo
+distante e reduz tensores temporários na montagem, mantendo a SVD e os limites
+de aceitação. Toda fuga finita agora recebe `finite_te_closure_unverified` e
+diagnóstico explícito. O solver **ainda não está qualificado para otimização
+aerodinâmica automática**: CM pequeno em cúspides e o fechamento de fuga finita
+continuam com limitações quantificadas.
+
+```powershell
+.\.venv\Scripts\python.exe examples/review_panel_solver.py --output outputs/panel_review_reproducao
+```
 
 ## Interface de solver v0.2.0
 

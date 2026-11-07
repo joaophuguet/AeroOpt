@@ -47,4 +47,8 @@
   `docs/PANEL_METHOD.md` e `docs/VALIDATION_V030.md` antes de alterar método,
   sinais, Kutta ou aceitação numérica. Convergência discreta não certifica
   precisão de discretização nem validação experimental. Preserve `cd=None`.
+- Consulte também `docs/VALIDATION_V031.md` para a revisão científica. Preserve
+  a flag/diagnóstico de fuga finita não verificada; não use esses coeficientes
+  para classificar projetos. Referências de pesquisa não são validação viscosa
+  nem substituem estudos de refinamento e condicionamento.
 

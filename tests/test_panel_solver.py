@@ -143,7 +143,7 @@ def test_execution_exception_preserves_evidence(geometry, tmp_path, monkeypatch)
     assert (directory / "traceback.txt").is_file()
 
 
-@pytest.mark.parametrize("defect", ["json", "case_id", "cp", "residual", "drag", "moment", "circulation", "mesh"])
+@pytest.mark.parametrize("defect", ["json", "case_id", "cp", "residual", "drag", "moment", "circulation", "mesh", "limitations"])
 def test_corrupt_output_is_parsing_failure(geometry, tmp_path, monkeypatch, defect):
     original = PanelSolver.execute
     def corrupt(self, case, context):
@@ -165,8 +165,10 @@ def test_corrupt_output_is_parsing_failure(geometry, tmp_path, monkeypatch, defe
             output["cm"] += 1
         elif defect == "circulation":
             output["elements"][0]["circulation"] += 1
-        else:
+        elif defect == "mesh":
             output["elements"][0]["centers"][0][0] += 1
+        else:
+            output.pop("limitations")
         path.write_text(json.dumps(output), encoding="utf-8")
         return evidence
     monkeypatch.setattr(PanelSolver, "execute", corrupt)
