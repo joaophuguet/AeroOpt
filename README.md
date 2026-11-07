@@ -1,4 +1,4 @@
-# AeroOpt v0.3.2 — Benchmark e confiabilidade numérica
+# AeroOpt v0.4.0 — Integração Alula via Node.js
 
 Base geométrica 2D para a futura otimização aerodinâmica multifidelidade de
 aerofólios multielementos. A v0.1 importa um elemento principal e um flap
@@ -8,6 +8,30 @@ incompressível e invíscido, acoplado entre principal e flap. Calcula Cp, CL,
 CM e circulação; **CD permanece ausente**. Não prevê separação, estol, efeitos
 de Reynolds, desempenho de voo ou otimização. Verificação numérica não é
 validação experimental de aerodinâmica viscosa.
+
+A v0.4 acrescenta `AlulaSolver`, um adaptador opcional para os modos invíscido
+e viscoso incompressível do Alula, executados em processos Node.js isolados.
+As fontes são fixadas por commit/hashes. O modo viscoso fornece estimativas
+de camada limite e CD quando convergido/admissível; **não há qualificação
+experimental ou para otimização**, e os avisos de separação/refinamento são
+preservados. O Hess–Smith e sua identidade 0.3.1 permanecem inalterados.
+
+## Alula opcional v0.4.0
+
+```powershell
+# Instalação explícita no workspace; não é executada durante uma análise.
+.\.venv\Scripts\python.exe scripts/install_alula.py --download --portable-node
+.\.venv\Scripts\python.exe examples/demo_alula.py --output outputs/alula_reproducao
+```
+
+O instalador seleciona somente os módulos numéricos e avisos necessários;
+não exige npm ou navegador. O snapshot GPL-2.0-or-later e Node ficam em
+`.deps/`, fora do Git, com hashes verificáveis. Use uma raiz de execução curta
+no Windows. O adaptador aceita os snapshots principal/flap, em ordem CCW,
+sem rediscretização. Referência de momento, Ncrit e trips são explícitos;
+Mach não zero é rejeitado. Resultados provisórios não recebem coeficientes
+neutros utilizáveis. Consulte [instalação, API, convenções e licenças](docs/ALULA_INTEGRATION.md)
+e [testes, resultados e custos](docs/VALIDATION_V040.md).
 
 ## Solver físico v0.3.0
 

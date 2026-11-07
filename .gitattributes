@@ -1,0 +1,6 @@
+# These packaged bytes participate in scientific identities or license receipts.
+# Preserve them exactly across checkouts, regardless of core.autocrlf.
+src/aeroopt/solvers/_alula/bridge.mjs -text
+# The generated receipt retains CRLF verbatim; keep normal whitespace checks.
+src/aeroopt/solvers/_alula/upstream-lock.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+src/aeroopt/solvers/_alula/COPYING -text

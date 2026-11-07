@@ -7,6 +7,13 @@
 > artefatos específicos inventariados, sem campos obrigatórios para futuros
 > adaptadores MSES/SU2.
 
+> A v0.4.0 preserva esses mesmos contratos e acrescenta o adaptador externo
+> [Alula via Node.js](ALULA_INTEGRATION.md). Os estados detalhados de convergência,
+> admissibilidade e coeficientes provisórios ficam no artefato específico;
+> análises inelegíveis mantêm coeficientes neutros ausentes. O runner continua
+> limitado à montagem principal/flap, enquanto o bridge standalone aceita
+> casos de um elemento para verificação. Não houve alteração dos schemas v1.
+
 ## Contrato e escopo
 
 Esta versão fornece contratos e execução auditável de análises 2D. O único

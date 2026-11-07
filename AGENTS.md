@@ -58,5 +58,12 @@
 - `aeroopt.verification` recebe histórias e limitações explícitas, sem executar
   solvers ou publicar limites rigorosos de erro. Não converter `None`/falhas em
   zero, não qualificar fugas finitas e não interpretar CM maior como projeto
-  melhor. O adaptador permanece 0.3.1 enquanto a produção não mudar.
+  melhor. A identidade do PanelSolver permanece 0.3.1 enquanto sua produção não mudar.
+- A v0.4.0 integra Alula via Node.js: consulte `docs/ALULA_INTEGRATION.md` e
+  `docs/VALIDATION_V040.md`. Preserve o commit/lock fixados, avisos GPL/XFOIL,
+  processos supervisionados e a separação entre coeficientes brutos provisórios
+  e coeficientes neutros elegíveis. Não instalar/atualizar dependências em solves.
+- Alula exige CCW sem reordenação automática, Mach=0 e transição/referência de
+  momento explícitas. Não omitir `ALULA_FINITE_BASE_RESEARCH`, não qualificar
+  rankings ou validação física por convergência e não integrar Euler nesta etapa.
 

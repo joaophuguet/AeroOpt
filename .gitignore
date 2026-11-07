@@ -8,5 +8,6 @@ build/
 outputs/
 .cache/
 .tmp/
+.deps/
 .coverage
 htmlcov/

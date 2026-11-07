@@ -253,3 +253,45 @@ como diagnóstico, pois não resolve impermeabilidade fora da colocação. A
 sensibilidade à tampa finita e o erro de momento pequeno na cúspide permanecem;
 não qualificar otimização aerodinâmica automática ou validação física.
 
+## Incremento v0.4.0 — Alula por processo Node.js
+
+`AlulaSolver` integra diretamente `solveInviscid` e `solveViscousAssembly`,
+sem portar algoritmos ou alterar o Hess–Smith, sua identidade 0.3.1, runner,
+snapshots ou schemas neutros. O upstream está fixado em
+`160f43713a1c6eafb0a4b0f035f5b0bb70b016f8`; 47 arquivos selecionados, incluindo
+39 módulos JavaScript e avisos/proveniência GPL/XFOIL, são verificados por
+SHA-256. Instalação isolada em `.deps/`, explícita via
+`scripts/install_alula.py`; nunca baixar/atualizar ao executar o solver.
+Node portátil exercitado: v22.23.4 Windows x64, com ZIP/binário fixados por hash.
+Não são necessários UI, npm, KLU/WASM, PDFs ou datasets para esses dois modos.
+
+A API Python recebe a montagem de dois elementos existente; o bridge aceita
+1–6 elementos para verificação sem ampliar `SolverCase`. Rejeitam-se contornos
+horários para impedir reordenação interna do Alula. Os pontos CCW fornecidos
+são preservados; uma fuga finita recebe somente a tampa reta declarada e exige
+streamfunction explícito. Mach deve ser zero. Reynolds é baseado na corda
+principal; no viscoso, Ncrit/trips são escolhas obrigatórias do chamador.
+O upstream tem CM positivo horário; converte-se para o sentido da referência
+solicitada. CL/CM/CD usam referência comum da montagem, não corda local do flap.
+
+Processo encerrado, convergência numérica, admissibilidade de camada fina,
+disponibilidade e elegibilidade dos coeficientes são distintos no JSON
+específico. Provisórios/não convergidos ficam apenas como valores brutos com
+rótulo; os coeficientes neutros ficam `None`. `outside-model` pode ter convergido
+matematicamente e continuar inelegível. A saída preserva Cp, BL, esteiras,
+resíduos, avisos e limitações; nenhuma aceitação indica validação física ou
+qualificação para rankings/otimização. `ALULA_FINITE_BASE_RESEARCH` permanece
+obrigatório para tampas finitas; as limitações HS anteriores não foram removidas.
+
+Todos os processos usam `AttemptContext.run_process`, incluindo a sondagem de
+versão Node. Caminhos absolutos comuns resolvem uma incompatibilidade Node com
+o prefixo Win32 no módulo inicial; cwd Windows acima de 240 unidades UTF-16 é
+rejeitado com diagnóstico e indicação de raiz menor. Não modificar contratos
+ou realocar tentativas silenciosamente para contornar limitações de caminhos.
+
+Consulte `ALULA_INTEGRATION.md` para API, licenças e reprodução, e
+`VALIDATION_V040.md` para paridade direta upstream, regressão e custos. O código
+GPL e seus avisos não perdem obrigações por uso não comercial ou por executar
+em processo separado. O restante do AeroOpt não foi relicenciado nesta etapa.
+Euler e Euler/BL, worker persistente e otimização permanecem fora do escopo.
+

@@ -5,6 +5,7 @@ from .conditions import ConditionParameter, OperatingConditions
 from .execution import AttemptContext, ExecutionEvidence
 from .mock import MockScenario, MockSolver
 from .panel import PanelSolver
+from .alula import AlulaSolver, AlulaViscousSettings
 from .results import (AerodynamicCoefficients, Artifact, ConvergenceStatus, Diagnostic,
                       MomentReference, ParsedOutput, RunStatus, SolverResult)
 from .runner import SolverRunner
@@ -13,4 +14,5 @@ from .serialization import FrozenJSON
 __all__ = ["AerodynamicSolver", "SolverCase", "SolverIdentity", "OperatingConditions",
            "ConditionParameter", "AttemptContext", "ExecutionEvidence", "MockScenario", "MockSolver",
            "AerodynamicCoefficients", "Artifact", "ConvergenceStatus", "Diagnostic", "MomentReference",
-           "ParsedOutput", "RunStatus", "SolverResult", "SolverRunner", "FrozenJSON", "PanelSolver"]
+           "ParsedOutput", "RunStatus", "SolverResult", "SolverRunner", "FrozenJSON", "PanelSolver",
+           "AlulaSolver", "AlulaViscousSettings"]
