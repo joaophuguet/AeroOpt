@@ -245,3 +245,12 @@ evidências apoiam consistência matemática em casos delimitados; não qualific
 geometrias arbitrárias, fugas grossas, folgas próximas do piso, alpha elevado
 ou resultados para otimização. CL invíscido elevado com flap defletido não é
 CL máximo nem prova de escoamento real aderido.
+
+A [v0.3.2](VALIDATION_V032.md) preserva esta formulação e a identidade 0.3.1
+do adaptador. Uma referência por imagens/conformação de dois corpos e estudos
+HS/LV acrescentam evidência de refinamento; a reconstrução do aerofólio
+publicado de Williams permanece não certificada. O módulo optativo
+[`aeroopt.verification`](NUMERICAL_RELIABILITY.md) registra histórias e
+classifica diferenças numéricas, sem alterar coeficientes, impor refinamento
+automático ou fornecer limites rigorosos de erro. Fuga finita e momento
+pequeno em cúspides continuam sujeitos às restrições da revisão.

@@ -1,4 +1,4 @@
-# AeroOpt v0.3.1 — Revisão numérica do solver de painéis
+# AeroOpt v0.3.2 — Benchmark e confiabilidade numérica
 
 Base geométrica 2D para a futura otimização aerodinâmica multifidelidade de
 aerofólios multielementos. A v0.1 importa um elemento principal e um flap
@@ -55,6 +55,23 @@ continuam com limitações quantificadas.
 
 ```powershell
 .\.venv\Scripts\python.exe examples/review_panel_solver.py --output outputs/panel_review_reproducao
+```
+
+A [v0.3.2](docs/VALIDATION_V032.md) acrescenta uma referência analítica de dois
+corpos e uma campanha fixa de refinamento/ordenação. Os círculos de Williams
+concordam com a precisão publicada; a reconstrução dos aerofólios finais
+**permanece não certificada**, com discrepâncias explicitadas. A alternativa
+conforme declarada verifica CL, CM, circulação e Cp dos dois métodos, sem
+alegar cumprimento do benchmark publicado. O módulo optativo
+[`aeroopt.verification`](docs/NUMERICAL_RELIABILITY.md) classifica diferenças
+como distinguíveis, inconclusivas ou inconsistentes por critérios heurísticos.
+O solver de produção não mudou e mantém identidade 0.3.1; fugas finitas,
+momento pequeno de Joukowski e otimização automática continuam limitados.
+
+```powershell
+.\.venv\Scripts\python.exe examples/verify_ranking_reliability.py --output outputs/reliability_reproducao
+# Comparações publicadas opcionais: PDF e transcrição locais fixados por SHA-256.
+.\.venv\Scripts\python.exe -m pytest -q --reference-data=outputs/reference_data_v011 --williams-data=outputs/reference_data_v032
 ```
 
 ## Interface de solver v0.2.0

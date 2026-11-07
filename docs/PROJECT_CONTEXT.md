@@ -223,3 +223,33 @@ de projetos. O uso aceitável permanece em estudos invíscidos controlados, com
 refinamento e referências próprias; otimização aerodinâmica automática não está
 qualificada. Consulte `VALIDATION_V031.md` antes de alterar essas restrições.
 
+## Incremento v0.3.2 — referência independente e ordenação numérica
+
+A solução por imagens dos dois círculos de Williams reproduz a Tabela 1 na
+precisão impressa. O segundo mapeamento conforme ainda não reproduz os
+aerofólios publicados na precisão das tabelas: o benchmark publicado não foi
+certificado e seu critério de aceitação permanece pendente. Não ajustar
+parâmetros/coordenadas para forçar concordância. O PDF original, transcrição,
+imagens e derivados ficam em `outputs/`, com SHA-256 e proveniência; não
+redistribuir esses pontos externos sem condições estabelecidas.
+
+Uma interpretação conforme inteiramente declarada em
+`examples/_williams_reference.py` define A_like/B_like, com solução analítica
+independente dos kernels HS/LV. Pressão, circulação e Blasius conferem força e
+momento. Essa alternativa não deve ser confundida com os casos A/B publicados.
+As comparações e o estudo fixo de 13 candidatos, quatro malhas e dois métodos
+estão em `VALIDATION_V032.md`. A precisão numérica permanece específica de
+geometria/malha/coeficiente; os casos muito próximos são inconclusivos.
+
+`aeroopt.verification` é um módulo optativo de histórias, incrementos,
+discrepâncias e classificações de pares, separado da API e dos coeficientes do
+solver. Seus indicadores são heurísticos, não limites de erro. O chamador deve
+transmitir falhas e limitações; `FINITE_TE_UNVERIFIED` impede uma classificação
+resolvida. Consulte `NUMERICAL_RELIABILITY.md` antes de modificar os critérios.
+
+Não houve alteração da produção nesta etapa: pacote 0.3.2, identidade do
+adaptador 0.3.1 preservada. Integração Gauss de pressão foi investigada apenas
+como diagnóstico, pois não resolve impermeabilidade fora da colocação. A
+sensibilidade à tampa finita e o erro de momento pequeno na cúspide permanecem;
+não qualificar otimização aerodinâmica automática ou validação física.
+

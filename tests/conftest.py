@@ -16,6 +16,8 @@ from aeroopt.geometry import Airfoil, FlapParameters, MultiElementAirfoil
 def pytest_addoption(parser):
     parser.addoption("--reference-data", type=Path, default=None,
                      help="Directory with SHA-256-pinned UIUC originals (not redistributed)")
+    parser.addoption("--williams-data", type=Path, default=None,
+                     help="Local pinned Williams PDF and checked transcription (not redistributed)")
 
 
 def pytest_configure(config):

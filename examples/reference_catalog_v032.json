@@ -1,0 +1,11 @@
+{
+  "canonical_url": "https://reports.aerade.cranfield.ac.uk/bitstream/handle/1826.2/2993/arc-rm-3717.pdf?isAllowed=y&sequence=1",
+  "download_url": "https://reports.aerade.cranfield.ac.uk/bitstream/1826.2/2993/1/arc-rm-3717.pdf",
+  "file": "arc-rm-3717.pdf",
+  "sha256": "db8ae04e423bd17becf7a1615db477246a576d4dd8300bc6f1dcfdd3c5b9a369",
+  "size_bytes": 1349341,
+  "checks_file": "published_checks.json",
+  "checks_sha256": "b937b1e022e7eb789cba311465625062cb4294beb37a943f76c57a556bee9778",
+  "reference": "B. R. Williams, ARC R&M 3717, report September 1971, publication 1973",
+  "redistribution": "Not established; original and manually checked coordinate excerpts remain local in outputs. Mathematical parameters and source hashes only are committed."
+}

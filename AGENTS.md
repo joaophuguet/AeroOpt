@@ -51,4 +51,12 @@
   a flag/diagnóstico de fuga finita não verificada; não use esses coeficientes
   para classificar projetos. Referências de pesquisa não são validação viscosa
   nem substituem estudos de refinamento e condicionamento.
+- Consulte `docs/VALIDATION_V032.md` e `docs/NUMERICAL_RELIABILITY.md` antes de
+  alterar referências independentes ou critérios de ordenação. A_like/B_like
+  são casos conformes declarados, não reproduções certificadas dos aerofólios
+  de Williams; o critério do benchmark publicado permanece pendente.
+- `aeroopt.verification` recebe histórias e limitações explícitas, sem executar
+  solvers ou publicar limites rigorosos de erro. Não converter `None`/falhas em
+  zero, não qualificar fugas finitas e não interpretar CM maior como projeto
+  melhor. O adaptador permanece 0.3.1 enquanto a produção não mudar.
 
