@@ -1,4 +1,4 @@
-"""AeroOpt: scientific geometry foundations for future aerodynamic optimization."""
+"""AeroOpt: multielement geometry and verified inviscid panel infrastructure."""
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 

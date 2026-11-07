@@ -1,15 +1,54 @@
-# AeroOpt v0.2.0 — Geometria e infraestrutura de solvers
+# AeroOpt v0.3.0 — Solver de painéis multielemento
 
 Base geométrica 2D para a futura otimização aerodinâmica multifidelidade de
 aerofólios multielementos. A v0.1 importa um elemento principal e um flap
 independentes, normaliza, posiciona, valida, exporta e desenha os contornos.
-**Não calcula aerodinâmica, CFD, desempenho de voo ou otimização.**
+Na v0.3, `PanelSolver` acrescenta escoamento potencial 2D estacionário,
+incompressível e invíscido, acoplado entre principal e flap. Calcula Cp, CL,
+CM e circulação; **CD permanece ausente**. Não prevê separação, estol, efeitos
+de Reynolds, desempenho de voo ou otimização. Verificação numérica não é
+validação experimental de aerodinâmica viscosa.
+
+## Solver físico v0.3.0
+
+Hess–Smith generalizado: N fontes constantes e uma intensidade de vórtice
+independente por elemento, sistema N+2, impermeabilidade e duas condições de
+Kutta. Os pontos fornecidos são preservados. Fugas finitas recebem a tampa
+reta já prevista pela geometria, com tratamento de Kutta aproximado e limitações
+documentadas. O adaptador usa o runner existente e exige referência de momento
+explícita. Aceita apenas `mach=0`; Reynolds é metadado, sem influência física.
+
+```python
+from pathlib import Path
+from aeroopt.solvers import MomentReference, OperatingConditions, PanelSolver, SolverRunner
+
+solver = PanelSolver(MomentReference(.25, 0, "clockwise", "q_inf*c_main^2"))
+runner = SolverRunner(Path.cwd(), "outputs/panel_attempts")
+result = runner.run(solver, geometry, OperatingConditions(6, 200000, 0),
+                    min_clearance=.002)
+```
+
+`geometry` é uma montagem válida da API abaixo. CL é positivo para a esquerda
+do escoamento; CM neste exemplo é positivo horário em torno de `(0.25,0)`.
+`panel_output.json` guarda Cp por painel, velocidades, fontes, circulação CCW,
+condicionamento e resíduos, com SHA-256 no inventário do resultado. Sistemas
+singulares, mal condicionados ou com resíduos excessivos não publicam coeficientes.
+
+```powershell
+.\.venv\Scripts\python.exe examples/demo_panel_solver.py --output outputs/panel_demo_reproducao
+.\.venv\Scripts\python.exe examples/verify_panel_solver.py --output outputs/panel_verification_reproducao
+```
+
+O primeiro exemplo usa os polígonos sintéticos existentes, sem refinamento, e
+apenas demonstra execução. O segundo gera referências analíticas e um estudo
+de refinamento explícito. Consulte [método, decisões e limites](docs/PANEL_METHOD.md)
+e [resultados quantitativos da verificação](docs/VALIDATION_V030.md).
 
 ## Interface de solver v0.2.0
 
 O pacote `aeroopt.solvers` introduz condições operacionais imutáveis, contrato
 abstrato de adaptadores, identidade científica SHA-256, tentativas isoladas,
-resultados tipados, logs e tratamento de falhas. O único adaptador entregue é
+resultados tipados, logs e tratamento de falhas. Na v0.2, o único adaptador era
 `MockSolver`, explicitamente não físico, com `cl`, `cd` e `cm` sempre ausentes.
 
 ```powershell
@@ -21,7 +60,7 @@ resultados tipados, logs e tratamento de falhas. O único adaptador entregue é
 A demonstração cobre sete estados, uma repetição da mesma análise e uma rejeição
 geométrica: nove tentativas, sem sobrescrita. Os resultados verificados estão
 em `outputs/solver_interface_v020_final/`, com JSON, DAT separados e logs.
-Nenhum gráfico de coeficientes é produzido. O timeout do mock usa um subprocesso
+Essa demonstração do mock não produz gráficos de coeficientes. Seu timeout usa um subprocesso
 real bloqueado, encerrado pelo controle de árvore de processos do Windows.
 
 ```python

@@ -1,5 +1,12 @@
 # Solver Interface — AeroOpt v0.2.0
 
+> Contratos preservados na v0.3.0. O escopo abaixo descreve a entrega histórica
+> v0.2.0; o adaptador físico adicionado posteriormente é documentado em
+> [PANEL_METHOD.md](PANEL_METHOD.md). Não houve mudança dos esquemas de entrada,
+> resultado ou das quatro etapas do adaptador. Cp/circulação/resíduos são
+> artefatos específicos inventariados, sem campos obrigatórios para futuros
+> adaptadores MSES/SU2.
+
 ## Contrato e escopo
 
 Esta versão fornece contratos e execução auditável de análises 2D. O único

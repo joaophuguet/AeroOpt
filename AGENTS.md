@@ -43,4 +43,8 @@
 - Mudanças futuras devem manter os testes geométricos e os novos testes de
   contratos, falhas, caminhos e processos. Não confunda infraestrutura validada
   com aerodinâmica validada.
+- A v0.3.0 inclui `PanelSolver`, potencial 2D incompressível invíscido. Consulte
+  `docs/PANEL_METHOD.md` e `docs/VALIDATION_V030.md` antes de alterar método,
+  sinais, Kutta ou aceitação numérica. Convergência discreta não certifica
+  precisão de discretização nem validação experimental. Preserve `cd=None`.
 

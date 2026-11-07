@@ -161,3 +161,37 @@ otimização ou modelos substitutos. Validade geométrica e sucesso do processo
 não demonstram fidelidade física. Detalhes e evidências estão em
 `SOLVER_INTERFACE.md` e `VALIDATION_V020.md`.
 
+## Incremento v0.3.0 — solver potencial multielemento
+
+`PanelSolver` acrescenta Hess–Smith 2D estacionário incompressível invíscido:
+fontes constantes por painel, uma folha de vórtices constante independente
+por elemento e Kutta independente para principal/flap. O sistema N+2 inclui
+interação completa. A arquitetura, runner, snapshots e esquemas v1 da v0.2
+foram preservados. Cp, circulação e resíduos são artefatos específicos
+inventariados, enquanto CL/CM usam os contratos neutros existentes.
+
+Referência de momento permanece obrigatória e sem padrão físico; CD continua
+ausente. Mach precisa ser zero, Reynolds é metadado, sem efeitos viscosos.
+Não há modelo de estol, separação, transição, camada limite, CFD geral,
+otimização, MSES ou SU2. Versão de código/projeto: 0.3.0.
+
+Os pontos não são modificados. A tampa reta de fuga finita é explicitamente
+painelada; sua condição de Kutta é aproximada, sem pressão de base/esteira.
+Ambos os percursos são suportados sem reordenação, com normais exteriores e
+circulação CCW. Existem gates de comprimento próprio, folga global,
+condicionamento e resíduos. Sucesso indica solução discreta aceita, não
+precisão certificada ou validação aerodinâmica experimental.
+
+O cilindro, a simetria, a tendência de aerofólio fino e uma referência exata de
+Joukowski verificam o kernel. O refinamento de NACA principal/flap verifica
+Kutta e consistência pressão/circulação. Joukowski revela convergência lenta
+na cúspide e erro relevante de momento mesmo com resíduos baixos; a fuga
+finita tem refinamento não monotônico. Não se ocultaram essas limitações
+alterando tolerâncias geométricas ou rediscretizando a entrada.
+
+Consulte `PANEL_METHOD.md` antes de alterar formulação, sinais, fuga, aceitação
+numérica ou API do adaptador; `VALIDATION_V030.md` registra evidência e limites.
+Permanecem necessários estudos de resolução de folgas, referências de maior
+precisão para fugas finitas e validação experimental antes de usar o solver
+para decisões de projeto ou classificação de candidatos.
+
